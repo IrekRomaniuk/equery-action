@@ -18,34 +18,58 @@ type Syslog struct {
 	Referer,Sender,Subject,Recipient,Reportid string
 	count uint64  
   }
-
-// Search elastic
-func Search(url, index string) (int64, error) {
-	// Create a context
-	ctx := context.Background()
-	// Create a client
-	client, err := elastic.NewClient(elastic.SetURL(url))
-	// Search with a term query
-	/*"filter": {
+// Func Query
+func Query(url, index, field, value string) (int64, error) {
+	/*"query": {
+    "bool": {
+      "must": { "match_all": {} },
+      "filter": {
         "range": {
-          "whatever_timestampfield": {
+          "@timestamp": {
             "gte": "now-10m",
             "lte": "now"
           }
+        }
+      }
+    }
+  }
 		}*/
-	exists, err := client.IndexExists(index).Do(ctx)
+	// Create a client
+	client, err := elastic.NewSimpleClient(elastic.SetURL(url))
+	timeRangeFilter := elastic.NewRangeQuery("@timestamp").Gte("now-10m").Lte("now")
+	query := elastic.NewBoolQuery().
+	Must(timeRangeFilter).
+	//Must(elastic.NewTermQuery(field, value)).
+	Must(elastic.NewMatchAllQuery())
+	
+	searchResult, err := client.Search().
+	Index(index).   // search in index
+	Query(query).   // specify the query
+	Sort(field, true). // sort by field, ascending
+	From(0).Size(10).   // take documents 0-9
+	Pretty(true).       // pretty print request and response JSON
+	Do(context.Background()) 
+	return searchResult.Hits.TotalHits, err
+}
+
+// Search elastic
+func Search(url, index, field, value string) (int64, error) {
+	// Create a client
+	client, err := elastic.NewSimpleClient(elastic.SetURL(url))
+	// Search with a term query	
+	exists, err := client.IndexExists(index).Do(context.Background())
 	if err != nil {
 		return 0, err
 	}
 	if exists {
-		termQuery := elastic.NewTermQuery("user", "olivere")
+		termQuery := elastic.NewTermQuery(field, value)		
 		searchResult, err := client.Search().
-		Index(index).   // search in index "twitter"
+		Index(index).   // search in index
 		Query(termQuery).   // specify the query
-		Sort("user", true). // sort by "user" field, ascending
+		Sort(field, true). // sort by field, ascending
 		From(0).Size(10).   // take documents 0-9
 		Pretty(true).       // pretty print request and response JSON
-		Do(ctx)             // execute		
+		Do(context.Background())             // execute		
 		return searchResult.Hits.TotalHits, err
 	} 
 	
@@ -58,7 +82,7 @@ func Search(url, index string) (int64, error) {
 func Ping (url string) {
 	// Obtain a client
 	errorlog := log.New(os.Stdout, "APP ", log.LstdFlags)
-	client, err := elastic.NewClient(elastic.SetErrorLog(errorlog))
+	client, err := elastic.NewSimpleClient(elastic.SetErrorLog(errorlog))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,7 +96,7 @@ func Ping (url string) {
 
 // Version of db
 func Version (url string) {
-	client, err := elastic.NewClient(elastic.SetURL(url))
+	client, err := elastic.NewSimpleClient(elastic.SetURL(url))
 	if err != nil {
 		log.Fatal(err)
 	}
