@@ -1,7 +1,6 @@
 package main
 
 import (
-	"gopkg.in/olivere/elastic.v5"
 
 )
 
