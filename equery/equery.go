@@ -18,28 +18,38 @@ type Syslog struct {
 	Referer,Sender,Subject,Recipient,Reportid string
 	count uint64  
   }
-// Func Query
-func Query(url, index, field, value string) (int64, error) {
-	/*"query": {
-    "bool": {
-      "must": { "match_all": {} },
-      "filter": {
-        "range": {
-          "@timestamp": {
-            "gte": "now-10m",
-            "lte": "now"
-          }
-        }
-      }
-    }
-  }
-		}*/
+// Func Agg
+func Agg(url, index, field, name string) {
 	// Create a client
 	client, err := elastic.NewSimpleClient(elastic.SetURL(url))
 	timeRangeFilter := elastic.NewRangeQuery("@timestamp").Gte("now-10m").Lte("now")
 	query := elastic.NewBoolQuery().
 	Must(timeRangeFilter).
-	//Must(elastic.NewTermQuery(field, value)).
+	Must(elastic.NewMatchAllQuery())
+	
+	agg := elastic.NewTermsAggregation().Field(field).Size(10)
+	search := client.Search().Index(index).Query(query)
+	search = search.Aggregation(name, agg)
+	sr, err := search.Do(context.Background())
+    if err != nil {
+        log.Fatal("error in aggregation Do:", err)
+    }
+ 
+    if agg, found := sr.Aggregations.Terms(name); found {
+        for _, bucket := range agg.Buckets {
+      log.Println("key:", bucket.Key, ", count:", bucket.DocCount)
+        }
+    }
+}
+
+// Func Query
+func Query(url, index, field, value string) (int64, error) {
+	// See README for query example
+	// Create a client
+	client, err := elastic.NewSimpleClient(elastic.SetURL(url))
+	timeRangeFilter := elastic.NewRangeQuery("@timestamp").Gte("now-10m").Lte("now")
+	query := elastic.NewBoolQuery().
+	Must(timeRangeFilter).
 	Must(elastic.NewMatchAllQuery())
 	
 	searchResult, err := client.Search().
@@ -72,7 +82,6 @@ func Search(url, index, field, value string) (int64, error) {
 		Do(context.Background())             // execute		
 		return searchResult.Hits.TotalHits, err
 	} 
-	
 	err = errors.New("Index does not exists")
 	return 0, err
 	
