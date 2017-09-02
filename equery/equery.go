@@ -37,7 +37,7 @@ func Agg(url, index, field string) {
  
     if agg, found := sr.Aggregations.Terms("Agg"); found {
         for _, bucket := range agg.Buckets {
-      log.Println("key:", bucket.Key, ", count:", bucket.DocCount)
+      log.Println("address:", bucket.Key, ", count:", bucket.DocCount)
         }
     }
 }
