@@ -15,6 +15,6 @@ func TestSearch(t *testing.T) {
 	fmt.Printf("Found a total of %d hits\n", results)
 	results, _ = Query("http://10.254.253.100:9200", "logstash-2017.09.02", "SourceIP", "123.1.2.7")
 	fmt.Printf("Found a total of %d hits in last 10m\n", results)
-	Agg("http://10.254.253.100:9200", "logstash-2017.09.02", "SourceIP", "Source")
+	Agg("http://10.254.253.100:9200", "logstash-2017.09.02", "SourceIP")
 	
 }

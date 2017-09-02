@@ -18,8 +18,8 @@ type Syslog struct {
 	Referer,Sender,Subject,Recipient,Reportid string
 	count uint64  
   }
-// Func Agg
-func Agg(url, index, field, name string) {
+// Func Agg returns aggregation by fields in last 10m
+func Agg(url, index, field string) {
 	// Create a client
 	client, err := elastic.NewSimpleClient(elastic.SetURL(url))
 	timeRangeFilter := elastic.NewRangeQuery("@timestamp").Gte("now-10m").Lte("now")
@@ -29,20 +29,20 @@ func Agg(url, index, field, name string) {
 	
 	agg := elastic.NewTermsAggregation().Field(field).Size(10)
 	search := client.Search().Index(index).Query(query)
-	search = search.Aggregation(name, agg)
+	search = search.Aggregation("Agg", agg)
 	sr, err := search.Do(context.Background())
     if err != nil {
         log.Fatal("error in aggregation Do:", err)
     }
  
-    if agg, found := sr.Aggregations.Terms(name); found {
+    if agg, found := sr.Aggregations.Terms("Agg"); found {
         for _, bucket := range agg.Buckets {
       log.Println("key:", bucket.Key, ", count:", bucket.DocCount)
         }
     }
 }
 
-// Func Query
+// Func Query returns field hits with value in last 10m
 func Query(url, index, field, value string) (int64, error) {
 	// See README for query example
 	// Create a client
@@ -62,7 +62,7 @@ func Query(url, index, field, value string) (int64, error) {
 	return searchResult.Hits.TotalHits, err
 }
 
-// Search elastic
+// Search returns returns field hits with value
 func Search(url, index, field, value string) (int64, error) {
 	// Create a client
 	client, err := elastic.NewSimpleClient(elastic.SetURL(url))
@@ -83,8 +83,7 @@ func Search(url, index, field, value string) (int64, error) {
 		return searchResult.Hits.TotalHits, err
 	} 
 	err = errors.New("Index does not exists")
-	return 0, err
-	
+	return 0, err	
 }
 
 // Ping db
