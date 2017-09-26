@@ -17,7 +17,7 @@ func TestTicket(t *testing.T) {
 	u.RawQuery = data.Encode()
 	urlStr := fmt.Sprintf("%v", u)  // "https://api.com/user/?name=foo&surname=bar"
 	
-	htmlData, err :=Ticket(urlStr, "netpro:u4-~B;3nd4CmzYB*")  //bytes.NewBufferString(data.Encode())
+	htmlData, err :=Ticket(urlStr, "")  //bytes.NewBufferString(data.Encode())
 	if err != nil {
 		fmt.Println(err)
 	} else {
