@@ -4,7 +4,6 @@ import (
 	"testing"
 	"fmt"
 	"net/url"
-	//"bytes"
 ) 
 
 func TestTicket(t *testing.T) {	
