@@ -11,10 +11,10 @@ func TestPingorVersion(t *testing.T) {
 }
 
 func TestSearch(t *testing.T) {
-	results, _ := Search("http://10.254.253.100:9200", "logstash-2017.09.02", "SourceIP", "123.1.2.7")
+	results, _ := Search("http://10.254.253.100:9200", "logstash-2017.09.26", "SourceIP", "4.4.4.4")
 	fmt.Printf("Found a total of %d hits\n", results)
-	results, _ = Query("http://10.254.253.100:9200", "logstash-2017.09.02", "SourceIP", "123.1.2.7")
+	results, _ = Query("http://10.254.253.100:9200", "logstash-2017.09.26", "SourceIP", "4.4.4.4")
 	fmt.Printf("Found a total of %d hits in last 10m\n", results)
-	Agg("http://10.254.253.100:9200", "logstash-2017.09.02", "SourceIP")
+	Agg("http://10.254.253.100:9200", "logstash-2017.09.26", "SourceIP")
 	
 }
